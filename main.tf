@@ -17,10 +17,18 @@ variable "ssh_private_key_path" {
   type        = string
 }
 
+provider "digitalocean" {
+  token = var.do_token
+}
+
+data "digitalocean_ssh_key" "Caldera" {
+  name = "Caldera"
+}
+
 # Create a new DigitalOcean project
-resource "digitalocean_project" "vulnhub" {
-  name        = "vulnhub"
-  description = "Project for vulnerability lab"
+resource "digitalocean_project" "VulnHub" {
+  name        = "VulnHub"
+  description = "Auto-deploy a vulnerable lab environment with Terraform into a Digital Ocean project."
   environment = "Development"
 }
 
@@ -36,24 +44,33 @@ data "http" "myip" {
 
 # Create a VPC
 resource "digitalocean_vpc" "vuln_vpc" {
-  name    = "vuln-vpc"
-  region  = "lon1"
+  name     = "vuln-vpc"
+  region   = "lon1"
   ip_range = "10.0.0.0/16"
 }
 
 # Create a Droplet
 resource "digitalocean_droplet" "vulndocker" {
-  name   = "vulndocker"
-  image  = "ubuntu-22-04-x64"
-  size   = "s2.medium"
-  region = "lon1"
+  name      = "vulndocker"
+  image     = "ubuntu-22-04-x64"
+  size      = "s-1vcpu-1gb"
+  region    = "lon1"
   user_data = data.template_file.install_script.rendered
-  tags = ["vulndocker"]
+  tags      = ["vulndocker"]
+
+  ssh_keys = [data.digitalocean_ssh_key.Caldera.id]
+
+  connection {
+    type        = "ssh"
+    host        = self.ipv4_address
+    user        = "root"
+    private_key = file(var.ssh_private_key_path)
+  }
 }
 
 # Create a Firewall
-resource "digitalocean_firewall" "vulnlab_sg" {
-  name        = "vulnlab_sg"
+resource "digitalocean_firewall" "vulnlab-sg" {
+  name        = "vulnlab-sg"
   droplet_ids = [digitalocean_droplet.vulndocker.id]
 
   inbound_rule {
