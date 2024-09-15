@@ -58,7 +58,7 @@ resource "digitalocean_droplet" "vulndocker" {
   user_data = data.template_file.install_script.rendered
   tags      = ["vulndocker"]
 
-  ssh_keys = [data.digitalocean_ssh_key.Caldera.id]
+  ssh_keys = [data.digitalocean_ssh_key.SSH_Key.id]
 
   connection {
     type        = "ssh"
