@@ -20,7 +20,7 @@ Clone this repository to your local machine:
 
 ```sh
 git clone <repository-url>
-cd vulnlab
+cd VulnLab
 ```
 2. Configure Your Environment
 Create a file named terraform.tfvars in the project directory and add the following content:
